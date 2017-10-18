@@ -23,17 +23,23 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.os.Handler;
+import android.os.Message;
 import android.os.SystemClock;
 import android.util.Size;
 import android.util.TypedValue;
 import android.view.Display;
-import java.util.List;
-import java.util.Vector;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import org.tensorflow.demo.OverlayView.DrawCallback;
 import org.tensorflow.demo.env.BorderedText;
 import org.tensorflow.demo.env.ImageUtils;
 import org.tensorflow.demo.env.Logger;
-import org.tensorflow.demo.R; // Explicit import needed for internal Google builds.
+
+import java.util.List;
+import java.util.Vector;
 
 public class ClassifierActivity extends CameraActivity implements OnImageAvailableListener {
   private static final Logger LOGGER = new Logger();
@@ -149,7 +155,32 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
             renderDebug(canvas);
           }
         });
+
+    // added by guanxuejin 20171016 for add trace button begin */
+    mClsfrButtonLL = (LinearLayout) findViewById(R.id.ll_detect_clsfr);
+    mClsfrConfList[0] = (TextView)  findViewById(R.id.tv_clsfr_conf_0);
+    mClsfrConfList[1] = (TextView)  findViewById(R.id.tv_clsfr_conf_1);
+    mClsfrConfList[2] = (TextView)  findViewById(R.id.tv_clsfr_conf_2);
+    mClsfrConfList[3] = (TextView)  findViewById(R.id.tv_clsfr_conf_3);
+    mClsfrObjList[0]  = (Button)    findViewById(R.id.bt_clsfr_obj_0);
+    mClsfrObjList[1]  = (Button)    findViewById(R.id.bt_clsfr_obj_1);
+    mClsfrObjList[2]  = (Button)    findViewById(R.id.bt_clsfr_obj_2);
+    mClsfrObjList[3]  = (Button)    findViewById(R.id.bt_clsfr_obj_3);
+    // added by guanxuejin 20171016 for add trace button end */
   }
+
+  /* added by guanxuejin 20171016 for add trace button begin */
+  LinearLayout mClsfrButtonLL;
+  TextView[] mClsfrConfList = new TextView[ConfigBase.MAX_NUM_DETECTED];
+  Button[] mClsfrObjList = new Button[ConfigBase.MAX_NUM_DETECTED];
+  Handler mHandler = new Handler(){
+    @Override
+    public void handleMessage(Message msg) {
+      List<Classifier.Recognition> results = (List<Classifier.Recognition>)msg.obj;
+      updateUI(results);
+    }
+  };
+  /* added by guanxuejin 20171016 for add trace button end */
 
   @Override
   protected void processImage() {
@@ -175,6 +206,10 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
             }
             resultsView.setResults(results);
             requestRender();
+
+            // added by guanxuejin 20171016 for add trace button begin
+            mHandler.obtainMessage(1, results).sendToTarget();
+
             readyForNextImage();
           }
         });
@@ -217,4 +252,27 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
       borderedText.drawLines(canvas, 10, canvas.getHeight() - 10, lines);
     }
   }
+
+  /* added by guanxuejin 20171016 for add trace button begin
+            * TODO:this demo is only prepared for max suppressed num of 4 detected object
+            * TODO:IndexOutOfBoundsException need to be noticed*/
+  private void updateUI(List<Classifier.Recognition> results) {
+    //clear all info first
+    for (int i=0; i < ConfigBase.MAX_NUM_DETECTED; i++) {
+      mClsfrConfList[i].setText("0.0");
+      mClsfrObjList[i].setText("none");
+    }
+
+    for (int i=0; i < ConfigBase.MAX_NUM_DETECTED && i < results.size(); i++) {
+      final String title = results.get(i).getTitle();
+      final float conf = results.get(i).getConfidence();
+      LOGGER.i("detect result: " + String.valueOf(conf) + "-" + title);
+      if (conf > 0) {
+        mClsfrConfList[i].setText(String.valueOf(conf));
+        mClsfrObjList[i].setText(title);
+      }
+    }
+    mClsfrButtonLL.postInvalidate();
+  }
+  /* added by guanxuejin 20171016 for add trace button end */
 }

@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import javax.microedition.khronos.opengles.GL10;
+
+import org.tensorflow.demo.ConfigBase;
 import org.tensorflow.demo.env.Logger;
 import org.tensorflow.demo.env.Size;
 
@@ -56,8 +58,11 @@ public class ObjectTracker {
     try {
       System.loadLibrary("tensorflow_demo");
       libraryFound = true;
+      ConfigBase.TRACKING_SUPPORTED = true;
+      LOGGER.i("libtensorflow_demo.so loaded");
     } catch (UnsatisfiedLinkError e) {
       LOGGER.e("libtensorflow_demo.so not found, tracking unavailable");
+      // added by guanxuejin 20171017 for local debug
     }
   }
 

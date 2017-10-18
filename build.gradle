@@ -43,7 +43,7 @@ allprojects {
 }
 
 // set to 'bazel', 'cmake', 'makefile', 'none'
-def nativeBuildSystem = 'cmake'
+def nativeBuildSystem = 'none'
 
 // Controls output directory in APK and CPU type for Bazel builds.
 // NOTE: Does not affect the Makefile build target API (yet), which currently
@@ -192,6 +192,6 @@ dependencies {
     if (nativeBuildSystem == 'cmake' || nativeBuildSystem == 'none') {
         compile 'org.tensorflow:tensorflow-android:+'
         //added by guanxuejin 20171016 for enable all features in AS compile
-        compile (name: 'Tensorflow-Android-Inference-alpha-debug', ext: 'aar')
+        //compile (name: 'Tensorflow-Android-Inference-alpha-debug', ext: 'aar')
     }
 }

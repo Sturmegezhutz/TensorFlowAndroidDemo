@@ -26,21 +26,27 @@ import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.os.Handler;
+import android.os.Message;
 import android.os.SystemClock;
 import android.util.Size;
 import android.util.TypedValue;
 import android.view.Display;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Vector;
+
 import org.tensorflow.demo.OverlayView.DrawCallback;
 import org.tensorflow.demo.env.BorderedText;
 import org.tensorflow.demo.env.ImageUtils;
 import org.tensorflow.demo.env.Logger;
 import org.tensorflow.demo.tracking.MultiBoxTracker;
-import org.tensorflow.demo.R; // Explicit import needed for internal Google builds.
+
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Vector;
 
 /**
  * An activity that uses a TensorFlowMultiBoxDetector and ObjectTracker to detect and then track
@@ -201,7 +207,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         });
 
     addCallback(
-        new DrawCallback() {
+        new OverlayView.DrawCallback() {
           @Override
           public void drawCallback(final Canvas canvas) {
             if (!isDebug()) {
@@ -242,12 +248,43 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             borderedText.drawLines(canvas, 10, canvas.getHeight() - 10, lines);
           }
         });
+
+    // added by guanxuejin 20171016 for add trace button begin */
+    mTraceButtonLL = (LinearLayout) findViewById(R.id.ll_detect_trace);
+    mDetectConfList[0] = (TextView) findViewById(R.id.tv_detect_conf_0);
+    mDetectConfList[1] = (TextView) findViewById(R.id.tv_detect_conf_1);
+    mDetectConfList[2] = (TextView) findViewById(R.id.tv_detect_conf_2);
+    mDetectConfList[3] = (TextView) findViewById(R.id.tv_detect_conf_3);
+    mDetectObjList[0]  = (Button)   findViewById(R.id.bt_detect_obj_0);
+    mDetectObjList[1]  = (Button)   findViewById(R.id.bt_detect_obj_1);
+    mDetectObjList[2]  = (Button)   findViewById(R.id.bt_detect_obj_2);
+    mDetectObjList[3]  = (Button)   findViewById(R.id.bt_detect_obj_3);
+    // added by guanxuejin 20171016 for add trace button end */
   }
 
   OverlayView trackingOverlay;
 
+  /* added by guanxuejin 20171016 for add trace button begin */
+  LinearLayout mTraceButtonLL;
+  TextView[] mDetectConfList = new TextView[ConfigBase.MAX_NUM_DETECTED];
+  Button[] mDetectObjList = new Button[ConfigBase.MAX_NUM_DETECTED];
+  Handler mHandler = new Handler(){
+    @Override
+    public void handleMessage(Message msg) {
+      List<Classifier.Recognition> results = (List<Classifier.Recognition>)msg.obj;
+      updateUI(results);
+    }
+  };
+  /* added by guanxuejin 20171016 for add trace button end */
+
   @Override
   protected void processImage() {
+    // added by guanxuejin for local debug
+    if (!ConfigBase.TRACKING_SUPPORTED) {
+      LOGGER.e("tracking not supported, return");
+      return;
+    }
+
     ++timestamp;
     final long currTimestamp = timestamp;
     byte[] originalLuminance = getLuminance();
@@ -328,12 +365,37 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
             tracker.trackResults(mappedRecognitions, luminanceCopy, currTimestamp);
             trackingOverlay.postInvalidate();
-
             requestRender();
             computingDetection = false;
+
+            // added by guanxuejin 20171016 for add trace button begin
+            mHandler.obtainMessage(1, results).sendToTarget();
           }
         });
   }
+
+  /* added by guanxuejin 20171016 for add trace button begin
+            * TODO:this demo is only prepared for max suppressed num of 4 detected object
+            * TODO:IndexOutOfBoundsException need to be noticed*/
+  private void updateUI(List<Classifier.Recognition> results) {
+    //clear all info first
+    for (int i=0; i < ConfigBase.MAX_NUM_DETECTED; i++) {
+      mDetectConfList[i].setText("0.0");
+      mDetectObjList[i].setText("none");
+    }
+
+    for (int i=0; i < ConfigBase.MAX_NUM_DETECTED && i < results.size(); i++) {
+      final String title = results.get(i).getTitle();
+      final float conf = results.get(i).getConfidence();
+      LOGGER.i("detect result: " + String.valueOf(conf) + "-" + title);
+      if (conf > 0) {
+        mDetectConfList[i].setText(String.valueOf(conf));
+        mDetectObjList[i].setText(title);
+      }
+    }
+    mTraceButtonLL.postInvalidate();
+  }
+  /* added by guanxuejin 20171016 for add trace button end */
 
   @Override
   protected int getLayoutId() {

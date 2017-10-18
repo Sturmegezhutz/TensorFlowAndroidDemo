@@ -20,6 +20,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
@@ -39,10 +40,11 @@ import android.util.Size;
 import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.widget.Toast;
-import java.nio.ByteBuffer;
+
 import org.tensorflow.demo.env.ImageUtils;
 import org.tensorflow.demo.env.Logger;
-import org.tensorflow.demo.R; // Explicit import needed for internal Google builds.
+
+import java.nio.ByteBuffer;
 
 public abstract class CameraActivity extends Activity
     implements OnImageAvailableListener, Camera.PreviewCallback {
@@ -411,12 +413,21 @@ public abstract class CameraActivity extends Activity
 
   @Override
   public boolean onKeyDown(final int keyCode, final KeyEvent event) {
-    if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+    // modified by guanxuejin 20171017 for activity switch
+    if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
       debug = !debug;
       requestRender();
       onSetDebug(debug);
       return true;
+    } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN ) {
+      if (this instanceof ClassifierActivity) {
+        startActivity(new Intent(this, DetectorActivity.class));
+      } else if (this instanceof DetectorActivity){
+        startActivity(new Intent(this, ClassifierActivity.class));
+      }
+      return true;
     }
+
     return super.onKeyDown(keyCode, event);
   }
 
