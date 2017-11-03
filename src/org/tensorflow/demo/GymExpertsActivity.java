@@ -43,7 +43,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Vector;
 
-public class ClassifierActivity extends CameraActivity implements OnImageAvailableListener {
+public class GymExpertsActivity extends CameraActivity implements OnImageAvailableListener {
   private static final Logger LOGGER = new Logger();
 
   protected static final boolean SAVE_PREVIEW_BITMAP = false;
@@ -72,19 +72,23 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
   // --input_node_names="Mul" \
   // --output_node_names="final_result" \
   // --input_binary=true
-  private static final int INPUT_SIZE = 224;
-  private static final int IMAGE_MEAN = 117;
-  private static final float IMAGE_STD = 1;
+  private static final int INPUT_SIZE = 299;
+  private static final int IMAGE_MEAN = 128;
+  private static final float IMAGE_STD = 128;
 
-  private static final String INPUT_NAME = "input";
-  private static final String OUTPUT_NAME = "output";
+    // modified by guanxuejin 20171027 for test
+  //private static final String INPUT_NAME = "input";
+  //private static final String OUTPUT_NAME = "output";
+  private static final String INPUT_NAME = "Mul";
+  private static final String OUTPUT_NAME = "final_result";
 
+  //private static final String MODEL_FILE = "file:///android_asset/tensorflow_inception_graph.pb";
+  //private static final String LABEL_FILE =
+   //   "file:///android_asset/imagenet_comp_graph_label_strings.txt";
 
-  private static final String MODEL_FILE = "file:///android_asset/tensorflow_inception_graph.pb";
-  private static final String LABEL_FILE =
-     "file:///android_asset/imagenet_comp_graph_label_strings.txt";
-  //private static final String MODEL_FILE = getSDRoot() + "/vggs.pb";
-  //private static final String LABEL_FILE = getSDRoot() + "/vggs.txt";
+  private static final String MODEL_FILE = "file:///android_asset/stripped_graph.pb";
+  private static final String LABEL_FILE = "file:///android_asset/retrained_labels.txt";
+
 
   private static final boolean MAINTAIN_ASPECT = true;
 
@@ -281,9 +285,9 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
 
   public static String getSDRoot() {
     File sdDir = null;
-    boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED); // ≈–∂œsdø® «∑Ò¥Ê‘⁄
+    boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED); // Âà§Êñ≠sdÂç°ÊòØÂê¶Â≠òÂú®
     if (sdCardExist) {
-      sdDir = Environment.getExternalStorageDirectory();// ªÒ»°∏˙ƒø¬º
+      sdDir = Environment.getExternalStorageDirectory();// Ëé∑ÂèñË∑üÁõÆÂΩï
       return sdDir.getAbsolutePath();
     }
     return null;

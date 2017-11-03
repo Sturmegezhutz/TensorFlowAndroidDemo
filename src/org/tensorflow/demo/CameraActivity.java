@@ -423,6 +423,8 @@ public abstract class CameraActivity extends Activity
       if (this instanceof ClassifierActivity) {
         startActivity(new Intent(this, DetectorActivity.class));
       } else if (this instanceof DetectorActivity){
+        startActivity(new Intent(this, GymExpertsActivity.class));
+      } else if (this instanceof GymExpertsActivity){
         startActivity(new Intent(this, ClassifierActivity.class));
       }
       return true;
